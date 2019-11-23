@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# Config
-declare -a SERVICES
-SERVICES=("t1:8000") # Format name:port
-DUMPS_DIR=$HOME/dumps
-ROUND_TIME=60
-SCRIPT_DIR=$PWD
-
+source ./config.sh
 echo "[+] Current setup"
 echo "  [+] Services:"
 for i in ${SERVICES[@]}; do
@@ -14,6 +8,8 @@ for i in ${SERVICES[@]}; do
 done
 echo "  [+] Dumps directory: $DUMPS_DIR"
 echo "  [+] Round time: $ROUND_TIME"
+echo "  [+] Rotate rounds: $ROUNDS"
+echo "  [+] Listen interface: $INTERFACE"
 echo ""
 
 
@@ -35,7 +31,11 @@ for i in ${SERVICES[@]}; do
 	mkdir -p $DUMPS_DIR/"${service[0]}"
 	cd $DUMPS_DIR
 	echo "[*] Changed dir to $PWD"
-	sudo tcpdump -G $(( $ROUND_TIME * 3 )) -i lo -w "${service[0]}"-%H-%M-%S -z "$SCRIPT_DIR/mv.sh" tcp port "${service[1]}" &
+		if [[ `id -u` == '1000' ]]; then
+        	tcpdump -G $(( $ROUND_TIME * 3 )) -i $INTERFACE -w "${service[0]}"-%H-%M-%S.pcap -z "$SCRIPT_DIR/mv.sh" tcp port "${service[1]}" &
+		else
+			sudo tcpdump -G $(( $ROUND_TIME * 3 )) -i $INTERFACE -w "${service[0]}"-%H-%M-%S.pcap -z "$SCRIPT_DIR/mv.sh" tcp port "${service[1]}" &
+		fi
 	echo "01 * * * * $SCRIPT_DIR/archive.sh ${service[0]} $DUMPS_DIR" >> cronlist
 done
 
