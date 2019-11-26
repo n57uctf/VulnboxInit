@@ -1,0 +1,7 @@
+declare -a SERVICES
+SERVICES=("t1:8080" "t2:8081") # Format name:port
+DUMPS_DIR=$HOME/dumps
+ROUND_TIME=60
+ROUNDS=3
+SCRIPT_DIR=$PWD
+INTERFACE="eth0"
